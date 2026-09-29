@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Font Mapper</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="app-header">
+  <h1>Font Mapper</h1>
+  <p>Print a template, fill it in by hand, scan it back in, download your font.</p>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="template">1. Print Template</button>
+    <button class="tab-btn" data-tab="build">2. Scan &amp; Build Font</button>
+  </nav>
+</header>
+
+<main>
+  <section id="tab-template" class="tab-panel active">
+    <div class="controls no-print">
+      <label>
+        Characters to include
+        <textarea id="charset-input" rows="3"></textarea>
+      </label>
+      <label>
+        Ligatures to include (space-separated, e.g. "th" for a connected t+h)
+        <textarea id="ligature-input" rows="2"></textarea>
+      </label>
+      <div class="controls-row">
+        <button id="reset-charset">Reset to default set</button>
+        <button id="print-template" class="primary">Print template</button>
+      </div>
+      <p class="hint">
+        Print at 100% scale ("Actual size" / no "fit to page"). Fill each box with dark
+        pen or marker, staying inside the light gray guide box &mdash; the gray lines
+        and baseline are printed light on purpose so they won't be picked up as ink
+        when you scan it back in. Do not draw over the 4 black corner squares or the QR
+        code &mdash; that code records exactly which letters are on that page, so pages
+        can be scanned back in in any order. Ligature boxes are wider &mdash; draw the
+        letters connected, the way you'd write them together, and typing those letters
+        in sequence will use your connected version instead of the separate letters.
+      </p>
+    </div>
+    <div id="template-pages"></div>
+  </section>
+
+  <section id="tab-build" class="tab-panel">
+    <div class="controls">
+      <h2>Step 1 &mdash; Upload your filled-in scan(s)</h2>
+      <input type="file" id="scan-input" accept="image/*" multiple />
+      <p class="hint">A flat, well-lit photo or scan works. JPG/PNG. If your template printed as
+        more than one page, select all of them at once &mdash; most file pickers let you
+        ctrl/cmd-click or shift-click to multi-select. Order doesn't matter: each page's QR
+        code records which letters are on it, so pages sort themselves out automatically.</p>
+
+      <div id="align-stage" hidden>
+        <h2>Step 2 &mdash; Confirm alignment</h2>
+        <p class="hint" id="align-hint">Detecting the 4 corner markers automatically&hellip;</p>
+        <div class="canvas-wrap">
+          <canvas id="align-canvas"></canvas>
+        </div>
+        <button id="redetect-btn">Re-run auto-detect</button>
+        <button id="dewarp-btn" class="primary">Straighten &amp; continue</button>
+      </div>
+
+      <div id="threshold-stage" hidden>
+        <h2>Step 3 &mdash; Check the ink threshold</h2>
+        <p class="hint">Adjust until each preview cell shows a clean black glyph on white,
+          with no gray guide lines or smudges picked up.</p>
+        <label>
+          Threshold
+          <input type="range" id="threshold-slider" min="20" max="235" value="128" />
+          <span id="threshold-value">128</span>
+        </label>
+        <div id="cell-previews" class="cell-previews"></div>
+        <button id="build-font-btn" class="primary">Build font</button>
+      </div>
+
+      <div id="result-stage" hidden>
+        <h2>Step 4 &mdash; Your font</h2>
+        <label>
+          Font family name
+          <input type="text" id="font-name-input" value="MyHandwriting" />
+        </label>
+        <div class="controls-row">
+          <button id="rebuild-font-btn">Apply name change</button>
+          <a id="download-font" class="primary" download="MyHandwriting.ttf">Download .ttf</a>
+        </div>
+        <h3>Preview</h3>
+        <textarea id="preview-text" rows="3">The quick brown fox jumps over the lazy dog. 0123456789</textarea>
+        <div id="font-preview" class="font-preview"></div>
+
+        <h3>Spacing &amp; kerning</h3>
+        <p class="hint">Each letter's width was auto-scanned from its own ink, not a fixed box, so
+          narrow letters like "i" don't carry the same width as "m". Drag the blue line to change the
+          gap before a letter, and the orange line to change how much room it takes up before the next
+          one starts &mdash; drag right on the letter itself, not in a separate field.</p>
+        <div class="controls-row">
+          <label class="inline-label">Nudge everything by
+            <input type="number" id="global-spacing-delta" value="0" step="5" style="width:4.5em" />
+            units
+          </label>
+          <button id="apply-global-spacing">Apply to all</button>
+          <button id="reset-all-metrics">Reset all to auto-scanned</button>
+        </div>
+        <div id="metrics-panel" class="metrics-panel"></div>
+      </div>
+
+      <p id="build-status" class="hint"></p>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="layout.js"></script>
+<script src="homography.js"></script>
+<script src="fontcore.js"></script>
+<script src="markers.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

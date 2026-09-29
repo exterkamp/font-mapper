@@ -1,0 +1,19 @@
+{
+  "name": "font-mapper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Print a fill-in-the-alphabet template, scan it back in, download a font built from your handwriting.",
+  "scripts": {
+    "test": "node test/test-fontcore.js && node test/test-markers.js && node test/test-qr.js",
+    "test:browser": "node test/browser-e2e.js && node test/browser-e2e-autodetect.js && node test/browser-e2e-metrics.js && node test/browser-e2e-ligatures.js && node test/browser-e2e-qr-identity.js && node test/browser-e2e-crop-nudge.js && node test/browser-e2e-preview-refresh.js",
+    "serve": "npx --yes http-server -c-1 -p 8111 ."
+  },
+  "devDependencies": {
+    "opentype.js": "^1.3.4",
+    "puppeteer-core": "^21.11.0"
+  },
+  "dependencies": {
+    "jsqr": "^1.4.0",
+    "qrcode-generator": "^2.0.4"
+  }
+}

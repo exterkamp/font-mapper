@@ -1,0 +1,212 @@
+:root {
+  --ink: #1a1a1a;
+  --guide: #aaaaaa;
+  --bg: #fafafa;
+  --accent: #2f6feb;
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+.app-header {
+  padding: 1rem 1.5rem;
+  background: white;
+  border-bottom: 1px solid #ddd;
+}
+.app-header h1 { margin: 0 0 0.2rem; font-size: 1.4rem; }
+.app-header p { margin: 0 0 0.75rem; color: #555; }
+
+.tabs { display: flex; gap: 0.5rem; }
+.tab-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  background: #f0f0f0;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+main { padding: 1.5rem; max-width: 900px; margin: 0 auto; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.controls {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.controls label { display: block; font-weight: 600; margin: 0.75rem 0 0.3rem; }
+.controls textarea, .controls input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: monospace;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.controls-row { display: flex; gap: 0.6rem; margin-top: 0.75rem; flex-wrap: wrap; }
+.hint { color: #666; font-size: 0.85rem; margin-top: 0.5rem; }
+
+button, a.primary, a#download-font {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f0f0f0;
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: var(--ink);
+  display: inline-block;
+}
+button.primary, a.primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ---- Template pages (also used for print) ---- */
+#template-pages { display: flex; flex-direction: column; gap: 1.5rem; align-items: center; }
+/* .page is always rendered at true physical inches, so print comes out
+   correctly sized; on screen it's visually scaled down to fit the viewport
+   via a transform on this wrapper (set by app.js), not by resizing .page
+   itself, so nothing about the underlying geometry changes. */
+.page-scale-wrap { position: relative; }
+.page {
+  position: relative;
+  background: white;
+  box-shadow: 0 0 8px rgba(0,0,0,0.15);
+  overflow: hidden;
+  transform-origin: top left;
+}
+.reg-mark {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: block;
+}
+.qr-code {
+  position: absolute;
+  display: block;
+  shape-rendering: crispEdges;
+}
+.cell-box {
+  position: absolute;
+  border: 1.5px solid var(--guide);
+  box-sizing: border-box;
+}
+.baseline-tick {
+  position: absolute;
+  height: 0;
+  border-top: 1px solid var(--guide);
+}
+.cell-label {
+  position: absolute;
+  font-size: 8px;
+  color: #888;
+  font-family: monospace;
+  line-height: 1;
+  user-select: none;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+/* Without this, some print pipelines (notably iOS AirPrint/Safari) impose
+   their own default page margin on top of our exact 8.5x11in .page divs,
+   which overflows a little on every page and compounds into extra blank
+   pages. Chrome's own print-to-PDF already defaults to zero margin, which is
+   why this wasn't caught testing there - @page is the only way to make
+   every print pipeline agree on zero. */
+@page {
+  size: 8.5in 11in;
+  margin: 0;
+}
+
+@media print {
+  .no-print, .app-header, .controls { display: none !important; }
+  body, html { margin: 0; padding: 0; }
+  main { margin: 0; padding: 0; max-width: none; }
+  /* page-break-after inside a flex container is unreliable across browsers
+     (WebKit/Safari especially) even though Chrome handles it fine - plain
+     block flow has universal, reliable support for page breaks. */
+  #template-pages { display: block; gap: 0; }
+  /* Undo the screen-only fit-to-viewport scaling so print always comes out at true size. */
+  .page-scale-wrap { display: block; width: auto !important; height: auto !important; }
+  .page { transform: none !important; }
+  .page { box-shadow: none; }
+  .page:not(:last-child) { page-break-after: always; }
+}
+
+/* ---- Build/scan tab ---- */
+.canvas-wrap { overflow: auto; border: 1px solid #ccc; max-height: 80vh; }
+#align-canvas { cursor: grab; touch-action: none; display: block; max-width: 100%; height: auto; }
+.cell-previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
+  gap: 4px;
+  margin: 0.75rem 0;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  padding: 6px;
+}
+.cell-previews canvas {
+  width: 100%;
+  height: auto;
+  border: 1px solid #ddd;
+  background: white;
+}
+.font-preview {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 1rem;
+  background: white;
+  font-size: 28px;
+  line-height: 1.5;
+  min-height: 3em;
+  word-wrap: break-word;
+}
+.inline-label { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: normal; }
+.metrics-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  padding: 8px;
+  margin-top: 0.5rem;
+}
+.metrics-card {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 4px;
+  text-align: center;
+  background: #fafafa;
+}
+.metrics-card .metrics-char { font-family: monospace; font-weight: bold; font-size: 0.75rem; margin-bottom: 2px; }
+.metrics-card canvas { display: block; cursor: ew-resize; touch-action: none; background: white; }
+.metrics-card .metrics-reset {
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  margin-top: 3px;
+}
+.crop-nudge-row {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 4px;
+}
+.crop-nudge-btn {
+  font-size: 0.65rem;
+  line-height: 1;
+  padding: 2px 6px;
+}
